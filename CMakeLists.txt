@@ -5,4 +5,4 @@ project(
   VERSION 1.0
   LANGUAGES CXX)
 
-  add_executable(day01 src/day01.cpp)
+add_executable(day01 src/day01.cpp)

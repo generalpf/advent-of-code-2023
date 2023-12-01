@@ -18,18 +18,11 @@ int main()
     {
         char firstDigit;
         char lastDigit;
-        for (int i = 0; i < line.length(); i++) {
-            if (isnumber(line[i])){
-                firstDigit = line[i] - '0';
-                break;
-            }
-        }
-        for (int i = line.length() - 1; i >= 0; i--) {
-            if (isnumber(line[i])){
-                lastDigit = line[i] - '0';
-                break;
-            }
-        }
+        // assuming index != string::npos because it's ok to crash here.
+        size_t index = line.find_first_of("0123456789");
+        firstDigit = line[index] - '0';
+        index = line.find_last_of("0123456789");
+        lastDigit = line[index] - '0';
         sum += 10 * firstDigit + lastDigit;
     }
     file.close();
