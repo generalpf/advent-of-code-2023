@@ -7,3 +7,5 @@ project(
 
 add_executable(day01a src/day01a.cpp)
 add_executable(day01b src/day01b.cpp)
+add_executable(day02a src/day02a.cpp)
+add_executable(day02b src/day02b.cpp)
