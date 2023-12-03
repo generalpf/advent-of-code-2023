@@ -1,7 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <list>
-#include <stdlib.h>
 using namespace std;
 
 void scanGame(string game, int *red, int *green, int *blue);
@@ -22,7 +20,7 @@ int main()
     {
         // heck a regex, let's do this manually.
         size_t colon = line.find_first_of(":");
-        int gameNumber = atoi(line.substr(5, colon - 5).c_str());
+        int gameNumber = stoi(line.substr(5, colon - 5));
 
         line = line.substr(colon + 2);
 
@@ -70,7 +68,7 @@ void scanGame(string game, int *red, int *green, int *blue)
             cubes = game.substr(0, comma);
 
         size_t space = cubes.find_first_of(" ");
-        int number = atoi(cubes.substr(0, space).c_str());
+        int number = stoi(cubes.substr(0, space));
         string color = cubes.substr(space + 1);
         if (color == "red")
             *red = number;
