@@ -5,6 +5,8 @@ project(
   VERSION 1.0
   LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 11)
+
 add_executable(day01a src/day01a.cpp)
 add_executable(day01b src/day01b.cpp)
 add_executable(day02a src/day02a.cpp)
