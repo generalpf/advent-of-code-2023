@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iterator>
 #include <vector>
+#include <climits>
 using namespace std;
 
 struct Mapper
@@ -12,7 +13,7 @@ struct Mapper
 
     long map(long l)
     {
-        return (l >= from && l < from + range) ? (to + l - from) : -1; 
+        return (l >= from && l < from + range) ? (to + l - from) : -1;
     }
 };
 
@@ -51,9 +52,7 @@ int main()
     {
         long l = *seedIter;
         for (vector<vector<Mapper>>::const_iterator pipeIter = pipeline.cbegin(); pipeIter != pipeline.cend(); pipeIter++)
-        {
             l = throughMappers(l, *pipeIter);
-        }
         if (l < lowestLocation) lowestLocation = l;
     }
 
