@@ -7,9 +7,7 @@ using namespace std;
 
 struct Mapper
 {
-    long to;
-    long from;
-    long range;
+    long to, from, range;
 
     long map(long l)
     {
@@ -48,11 +46,11 @@ int main()
     file.close();
 
     long lowestLocation = LONG_MAX;
-    for (vector<long>::const_iterator seedIter = seeds.cbegin(); seedIter != seeds.cend(); seedIter++)
+    for (auto& seed : seeds)
     {
-        long l = *seedIter;
-        for (vector<vector<Mapper>>::const_iterator pipeIter = pipeline.cbegin(); pipeIter != pipeline.cend(); pipeIter++)
-            l = throughMappers(l, *pipeIter);
+        long l = seed;
+        for (auto& pipe : pipeline)
+            l = throughMappers(l, pipe);
         if (l < lowestLocation) lowestLocation = l;
     }
 
@@ -80,9 +78,7 @@ vector<Mapper> mappersAfterLinePrefix(string prefix, ifstream& file)
 
     // eat until we find the prefix line
     while (getline(file, line))
-    {
         if (line == prefix) break;
-    }
 
     vector<Mapper> mappers;
     while (getline(file, line))
@@ -91,10 +87,7 @@ vector<Mapper> mappersAfterLinePrefix(string prefix, ifstream& file)
 
         vector<long> stuff = longsInString(line);
         // if we die, we die. not every man truly lives.
-        Mapper m;
-        m.to = stuff[0];
-        m.from = stuff[1];
-        m.range = stuff[2];
+        Mapper m { .to = stuff[0], .from = stuff[1], .range = stuff[2] };
         mappers.push_back(m);
     }
 

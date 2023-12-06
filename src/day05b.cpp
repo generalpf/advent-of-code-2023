@@ -3,13 +3,13 @@
 #include <iterator>
 #include <vector>
 #include <climits>
+#include <thread>
+#include <mutex>
 using namespace std;
 
 struct Mapper
 {
-    long to;
-    long from;
-    long range;
+    long to, from, range;
 
     long map(long l)
     {
@@ -20,6 +20,7 @@ struct Mapper
 vector<long> longsInString(string s);
 vector<Mapper> mappersAfterLinePrefix(string prefix, ifstream& file);
 long throughMappers(long l, vector<Mapper> v);
+void runRange(long seedStart, long seedRange, vector<vector<Mapper>> mappers, long& lowestLocation, mutex* m);
 
 int main()
 {
@@ -48,17 +49,19 @@ int main()
     file.close();
 
     long lowestLocation = LONG_MAX;
+    mutex m;
+    vector<thread> threads;
     for (vector<long>::const_iterator seedIter = seeds.cbegin(); seedIter != seeds.cend(); seedIter++)
     {
         long rangeStart = *seedIter;
         long rangeSize = *(++seedIter); // extra iteration here.
-        for (long seed = rangeStart; seed < rangeStart + rangeSize; seed++) {
-            long l = seed;
-            for (vector<vector<Mapper>>::const_iterator pipeIter = pipeline.cbegin(); pipeIter != pipeline.cend(); pipeIter++)
-                l = throughMappers(l, *pipeIter);
-            if (l < lowestLocation) lowestLocation = l;
-        }
+
+        thread t(runRange, rangeStart, rangeSize, pipeline, std::ref(lowestLocation), &m);
+        threads.push_back(std::move(t));
     }
+
+    for (auto& thread : threads)
+        thread.join();
 
     cout << "lowest location = " << lowestLocation << endl;
 }
@@ -84,9 +87,7 @@ vector<Mapper> mappersAfterLinePrefix(string prefix, ifstream& file)
 
     // eat until we find the prefix line
     while (getline(file, line))
-    {
         if (line == prefix) break;
-    }
 
     vector<Mapper> mappers;
     while (getline(file, line))
@@ -95,10 +96,7 @@ vector<Mapper> mappersAfterLinePrefix(string prefix, ifstream& file)
 
         vector<long> stuff = longsInString(line);
         // if we die, we die. not every man truly lives.
-        Mapper m;
-        m.to = stuff[0];
-        m.from = stuff[1];
-        m.range = stuff[2];
+        Mapper m { .to = stuff[0], .from = stuff[1], .range = stuff[2] };
         mappers.push_back(m);
     }
 
@@ -113,4 +111,18 @@ long throughMappers(long l, vector<Mapper> v)
         if (to != -1) return to;
     }
     return l;
+}
+
+void runRange(long seedStart, long seedRange, vector<vector<Mapper>> pipeline, long& lowestLocation, mutex* m)
+{
+    long thisLowestLocation = LONG_MAX;
+    for (long seed = seedStart; seed < seedStart + seedRange; seed++)
+    {
+        long l = seed;
+        for (vector<vector<Mapper>>::const_iterator pipeIter = pipeline.cbegin(); pipeIter != pipeline.cend(); pipeIter++)
+            l = throughMappers(l, *pipeIter);
+        if (l < thisLowestLocation) thisLowestLocation = l;
+    }
+    lock_guard<mutex> guard(*m);
+    if (thisLowestLocation < lowestLocation) lowestLocation = thisLowestLocation;
 }
