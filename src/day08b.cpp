@@ -108,15 +108,9 @@ int main()
             }
             if (haveSeenAllDistances) break;
         }
-        bool allZs = true;
         char dir = instructions[steps++ % instructions.length()];
         for (int i = 0; i < ptrs.size(); i++)
-        {
             ptrs[i] = dir == 'L' ? ptrs[i]->left : ptrs[i]->right;
-            if (ptrs[i]->name[2] != 'Z')
-                allZs = false;
-        }
-        if (allZs) break;
     }
 
     long answer = std::lcm(zInfo[0].zDistance, zInfo[1].zDistance);
