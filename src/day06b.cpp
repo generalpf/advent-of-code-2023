@@ -23,14 +23,14 @@ int main()
     file.close();
 
     timesString.erase(remove_if(timesString.begin(), timesString.end(), ::isspace), timesString.end());
-    long time = stol(timesString);
+    long long time = stoll(timesString);
     distancesString.erase(remove_if(distancesString.begin(), distancesString.end(), ::isspace), distancesString.end());
-    long distanceToBeat = stol(distancesString);
+    long long distanceToBeat = stoll(distancesString);
 
     long waysToWin = 0;
-    for (long j = 1; j < time; j++)
+    for (long long j = 1; j < time; j++)
     {
-        long distance = j * (time - j);
+        long long distance = j * (time - j);
         if (distance > distanceToBeat) ++waysToWin;
     }
 
