@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 std::vector<long> longsInString(std::string s);
 std::vector<long> derivative(std::vector<long> values);
