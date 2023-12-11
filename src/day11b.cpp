@@ -59,7 +59,7 @@ int main()
             rowsWithoutGalaxies.push_back(y);
     }
 
-    long sum = 0L;
+    long long sum = 0L;
     for (size_t i = 0; i < galaxies.size() - 1; i++)
         for (size_t j = i + 1; j < galaxies.size(); j++)
         {
