@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cmath>
 
 enum Direction
 {
@@ -161,7 +162,7 @@ int main()
 
 bool recordVisit(Laser* l, std::vector<std::vector<int>>& visitDirections)
 {
-    int bits = (int) pow(2.0, l->d);
+    int bits = (int) pow(2.0f, l->d);
     bool result = !(visitDirections[l->y][l->x] & bits);
     visitDirections[l->y][l->x] |= bits;
     return result;
