@@ -1,2 +1,6 @@
 build/
 .vscode/
+.build/
+Package.resolved
+DerivedData/
+.swiftpm/
