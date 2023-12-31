@@ -18,14 +18,14 @@ var points = [Point]()
 
 instructions.forEach { instruction in
     let parts = instruction.split(separator: " ")
-    let direction = parts[0]
-    let magnitude = Int(parts[1])!
+    let trueInstruction = String(parts[2].dropFirst(2).dropLast())
+    let magnitude = Int(trueInstruction.dropLast(), radix: 16)!
     // turn.
-    switch direction {
-    case "R": (xDelta, yDelta) = (1, 0)
-    case "L": (xDelta, yDelta) = (-1, 0)
-    case "D": (xDelta, yDelta) = (0, 1)
-    case "U": (xDelta, yDelta) = (0, -1)
+    switch trueInstruction.last! {
+    case "0": (xDelta, yDelta) = (1, 0)
+    case "2": (xDelta, yDelta) = (-1, 0)
+    case "1": (xDelta, yDelta) = (0, 1)
+    case "3": (xDelta, yDelta) = (0, -1)
     default: break
     }
     // move.
