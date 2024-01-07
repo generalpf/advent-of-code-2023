@@ -106,23 +106,12 @@ instructions
         workflows[id] = Workflow(id: id, steps: steps)
     }
 
-let inWorkflow = workflows["in"]!
-var accepted = 0
+typealias Interval = (from: Int, to: Int)
 
-class Interval {
-    let from: Int
-    let to: Int
-
-    public init(from: Int, to: Int) {
-        self.from = from
-        self.to = to
-    }
-}
-
-var xIntervals: [Interval] = [Interval(from: 1, to: 4000)]
-var mIntervals: [Interval] = [Interval(from: 1, to: 4000)]
-var aIntervals: [Interval] = [Interval(from: 1, to: 4000)]
-var sIntervals: [Interval] = [Interval(from: 1, to: 4000)]
+var xIntervals: [Interval] = [(from: 1, to: 4000)]
+var mIntervals: [Interval] = [(from: 1, to: 4000)]
+var aIntervals: [Interval] = [(from: 1, to: 4000)]
+var sIntervals: [Interval] = [(from: 1, to: 4000)]
 
 workflows
     .values
@@ -131,7 +120,7 @@ workflows
         guard let v = step.v, let o = step.o, let c = step.c else {
             return
         }
-        var intervals: [Interval] = switch v {
+        let intervals: [Interval] = switch v {
         case .x: xIntervals
         case .m: mIntervals
         case .a: aIntervals
@@ -139,6 +128,9 @@ workflows
         }
         let splitMeIndex = intervals.firstIndex(where: { i in c >= i.from && c <= i.to })!
         let splitMe: Interval = intervals[splitMeIndex]
+        // there is a bug in here where an interval is replaced with a pair of intervals
+        // where one or more of them has .to < .from so maybe we should figure that out if
+        // we want to optimize some more.
         let newIntervals = switch o {
         case .greaterThan:
             [Interval(from: splitMe.from, to: c),
@@ -147,44 +139,59 @@ workflows
             [Interval(from: splitMe.from, to: c - 1),
              Interval(from: c, to: splitMe.to)]
         }
-        intervals.remove(at: splitMeIndex)
-        intervals.append(contentsOf: newIntervals)
         switch v {
-        case .x: xIntervals = intervals
-        case .m: mIntervals = intervals
-        case .a: aIntervals = intervals
-        case .s: sIntervals = intervals
+        case .x: xIntervals.replaceSubrange(splitMeIndex...splitMeIndex, with: newIntervals)
+        case .m: mIntervals.replaceSubrange(splitMeIndex...splitMeIndex, with: newIntervals)
+        case .a: aIntervals.replaceSubrange(splitMeIndex...splitMeIndex, with: newIntervals)
+        case .s: sIntervals.replaceSubrange(splitMeIndex...splitMeIndex, with: newIntervals)
         }
     }
 
 print("intervals: { x: \(xIntervals.count), m: \(mIntervals.count), a: \(aIntervals.count), s: \(sIntervals.count) }")
 
+let queue = DispatchQueue(label: "com.des.aoc2023.day19b", attributes: .concurrent)
+
+let lock = NSLock()
+var allAccepted = 0
+
+let inWorkflow = workflows["in"]!
+
+let group = DispatchGroup()
 xIntervals.forEach { xi in
-    print("x: [\(xi.from), \(xi.to)]")
-    mIntervals.forEach { mi in
-        print("  m: [\(mi.from), \(mi.to)]")
-        aIntervals.forEach { ai in
-            sIntervals.forEach { si in
-                let part = Part(x: xi.from, m: mi.from, a: ai.from, s: si.from)
-                var result = inWorkflow.execute(part: part)
-                var resolved = false
-                while !resolved {
-                    switch result {
-                    case .accept:
-                        accepted += (xi.to - xi.from + 1) * (mi.to - mi.from + 1) * (ai.to - ai.from + 1) * (si.to - si.from + 1)
-                        resolved = true
-                    case .reject:
-                        resolved = true
-                    case .goto(let id):
-                        result = workflows[id]!.execute(part: part)
+    group.enter()
+    queue.async {
+        print("x: [\(xi.from), \(xi.to)]")
+        var accepted = 0
+        mIntervals.forEach { mi in
+            aIntervals.forEach { ai in
+                sIntervals.forEach { si in
+                    let part = Part(x: xi.from, m: mi.from, a: ai.from, s: si.from)
+                    var result = inWorkflow.execute(part: part)
+                    var resolved = false
+                    while !resolved {
+                        switch result {
+                        case .accept:
+                            accepted += (xi.to - xi.from + 1) * (mi.to - mi.from + 1) * (ai.to - ai.from + 1) * (si.to - si.from + 1)
+                            resolved = true
+                        case .reject:
+                            resolved = true
+                        case .goto(let id):
+                            result = workflows[id]!.execute(part: part)
+                        }
                     }
                 }
             }
         }
+        lock.lock()
+        allAccepted += accepted
+        lock.unlock()
+        group.leave()
     }
 }
 
-print("\(accepted) parts were accepted")
+group.wait()
+
+print("\(allAccepted) parts were accepted")
 
 func parseStep(s: String) -> Step {
     if let comparator = s.firstIndex(of: ">") ?? s.firstIndex(of: "<"), let colon = s.firstIndex(of: ":") {
